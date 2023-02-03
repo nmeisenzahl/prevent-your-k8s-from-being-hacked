@@ -1,0 +1,23 @@
+package:
+  name: hello-app
+
+environment:
+  contents:
+    keyring:
+      - https://packages.wolfi.dev/os/wolfi-signing.rsa.pub
+    repositories:
+      - https://packages.wolfi.dev/os
+    packages:
+    - busybox
+    - ca-certificates-bundle
+    - nghttp2
+    - nodejs
+    - wolfi-baselayout
+
+pipeline:
+  - name: Build app
+    runs: |
+      cd ./src
+      npm install
+      mkdir -p "${{targets.destdir}}"
+      cp -R ./ "${{targets.destdir}}/app/"
