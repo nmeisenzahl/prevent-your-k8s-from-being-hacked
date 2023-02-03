@@ -19,5 +19,5 @@ pipeline:
     runs: |
       cd ./src
       npm install
-      mkdir -p "${{targets.destdir}}"
+      mkdir -p "${{targets.destdir}}/app/"
       cp -R ./ "${{targets.destdir}}/app/"
