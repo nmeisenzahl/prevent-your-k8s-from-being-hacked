@@ -4,3 +4,4 @@
 **/packages
 melange.rsa*
 **/sbom-*
+**/cosign.*

@@ -1,0 +1,30 @@
+---
+apiVersion: kyverno.io/v1
+kind: Policy
+metadata:
+  name: check-if-image-signed
+  namespace: default
+spec:
+  validationFailureAction: Enforce
+  webhookTimeoutSeconds: 30
+  background: false
+  failurePolicy: Fail
+  rules:
+    - name: check-if-image-signed
+      match:
+        any:
+        - resources:
+            kinds:
+              - Pod
+      verifyImages:
+      - imageReferences:
+        - "ghcr.io/nmeisenzahl/*"
+        attestors:
+        - count: 1
+          entries:
+          - keys:
+              publicKeys: |-
+                -----BEGIN PUBLIC KEY-----
+                MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAETKNuIO4XzpRkoTkW8I7LV+IcRUyV
+                e8uHXKpyI6ag3+XquSa0Idp9HKltqJTa0hWwaiFkJOR0VgdeolE1sKs19w==
+                -----END PUBLIC KEY-----
