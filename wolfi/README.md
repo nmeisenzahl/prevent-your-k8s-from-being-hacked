@@ -45,7 +45,7 @@ nerdctl image ls
 Build with melange and apko:
 
 ```bash
-nerdctl run --privileged --rm -it -v ${PWD}:/work -w /work --entrypoint /usr/bin/melange cgr.dev/chainguard/sdk:latest-20230118 keygen
-nerdctl run --privileged --rm -it -v ${PWD}:/work -w /work --entrypoint /usr/bin/melange cgr.dev/chainguard/sdk:latest-20230118 build --arch aarch64 --signing-key melange.rsa --keyring-append melange.rsa melange.yaml
+nerdctl run --privileged --rm -it -v ${PWD}:/work -w /work --entrypoint /usr/bin/melange cgr.dev/chainguard/sdk:latest keygen
+nerdctl run --privileged --rm -it -v ${PWD}:/work -w /work --entrypoint /usr/bin/melange cgr.dev/chainguard/sdk:latest build --arch aarch64 --signing-key melange.rsa --keyring-append melange.rsa melange.yaml
 nerdctl run --privileged --rm -it -v ${PWD}:/work -w /work --entrypoint /usr/bin/apko cgr.dev/chainguard/sdk:latest-20230118 build --build-arch aarch64 -k melange.rsa.pub apko.yaml ghcr.io/nmeisenzahl/prevent-your-k8s-from-being-hacked/hello-app:latest hello-app.tar
 ```
