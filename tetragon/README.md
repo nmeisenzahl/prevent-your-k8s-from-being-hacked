@@ -23,7 +23,7 @@ kubectl apply -f ./src/block-process-policy.yaml
 ```
 
 ```bash
-kubectl logs -n kube-system -l app.kubernetes.io/name=tetragon -c export-stdout -f | tetra getevents -o compact
+kubectl logs -n kube-system -l app.kubernetes.io/name=tetragon -c export-stdout | tetra getevents -o compact
 ```
 
 You now shouldn't be able to access the pod anymore.
