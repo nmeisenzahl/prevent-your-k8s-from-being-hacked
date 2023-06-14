@@ -1,6 +1,6 @@
 # Wolfi Demo
 
-Build and run golang app:
+Build and run the app:
 
 ```bash
 nerdctl build -t hello:origin -f Dockerfile.origin .
