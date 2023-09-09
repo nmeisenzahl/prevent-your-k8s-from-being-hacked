@@ -9,7 +9,7 @@ kubectl logs -f -n kyverno --tail=0 -l "app.kubernetes.io/name=kyverno"
 
 kubectl run --image=cgr.dev/chainguard/nginx:latest nginx-$RANDOM
 
-kubectl get events --sort-by='.metadata.creationTimestamp'
+kubectl events
 ```
 
 Verify your own image (we will reuse our Wolfi image):
@@ -29,5 +29,5 @@ kubectl logs -f -n kyverno --tail=0 -l "app.kubernetes.io/name=kyverno"
 
 kubectl run --image=ghcr.io/nmeisenzahl/prevent-your-k8s-from-being-hacked/hello-app:latest hello-app-$RANDOM
 
-kubectl get events --sort-by='.metadata.creationTimestamp'
+kubectl events
 ```

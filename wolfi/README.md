@@ -15,6 +15,8 @@ nerdctl save hello:origin -o ./hello.tar
 syft packages --scope all-layers --output syft-json oci-archive:./hello.tar > sbom.json
 
 grype sbom:sbom.json
+
+grype --quiet sbom:sbom.json | grep -o deb | wc -l
 ```
 
 Now build the same app with Wolfi:
@@ -25,17 +27,10 @@ nerdctl build -t hello:wolfi -f Dockerfile.wolfi .
 nerdctl run -it --rm -p 8080:5000 hello:wolfi
 ```
 
-Let's check for vulnerabilities again:
+Let's check for OS vulnerabilities again:
 
 ```bash
-cosign download sbom cgr.dev/chainguard/node > sbom.json
-grype sbom:sbom.json
-```
-
-And also compare the image size:
-
-```bash
-nerdctl image ls
+grype cgr.dev/chainguard/node:latest
 ```
 
 Build with melange and apko:
