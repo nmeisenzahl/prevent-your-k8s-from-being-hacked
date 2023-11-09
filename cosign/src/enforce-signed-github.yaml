@@ -2,7 +2,7 @@
 apiVersion: kyverno.io/v1
 kind: Policy
 metadata:
-  name: check-if-image-signed-keyless
+  name: check-if-image-signed-github
   namespace: default
 spec:
   validationFailureAction: Enforce
@@ -10,7 +10,7 @@ spec:
   background: false
   failurePolicy: Fail
   rules:
-    - name: check-if-image-keyless
+    - name: ccheck-if-image-signed-github
       match:
         any:
         - resources:
