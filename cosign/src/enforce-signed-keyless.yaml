@@ -1,0 +1,25 @@
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: check-image-signed-keyless
+spec:
+  validationFailureAction: Enforce
+  webhookTimeoutSeconds: 30
+  failurePolicy: Fail
+  rules:
+    - name: check-image-signed-keyless
+      match:
+        any:
+        - resources:
+            kinds:
+              - Pod
+      verifyImages:
+      - imageReferences:
+        - "ghcr.io/kyverno/test-verify-image:signed-keyless"
+        attestors:
+        - entries:
+          - keyless:
+              subject: "*@nirmata.com"
+              issuer: "https://accounts.google.com"
+              rekor:
+                url: https://rekor.sigstore.dev
