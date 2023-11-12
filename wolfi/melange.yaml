@@ -1,5 +1,8 @@
 package:
   name: hello-app
+  version: 1.0.0
+  target-architecture:
+    - all
 
 environment:
   contents:
