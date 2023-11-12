@@ -1,5 +1,5 @@
 apiVersion: kyverno.io/v1
-kind: ClusterPolicy
+kind: Policy
 metadata:
   name: check-image-signed-keyless
 spec:
@@ -15,7 +15,7 @@ spec:
               - Pod
       verifyImages:
       - imageReferences:
-        - "ghcr.io/kyverno/test-verify-image:signed-keyless"
+        - "ghcr.io/kyverno/*"
         attestors:
         - entries:
           - keyless:

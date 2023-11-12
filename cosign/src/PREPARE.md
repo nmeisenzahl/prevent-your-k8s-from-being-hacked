@@ -1,4 +1,5 @@
 ```bash
+
 LOCATION=northeurope
 RG=rg-containerconf-demo
 KV=akv-containerconf-demo
@@ -27,7 +28,7 @@ az role assignment create \
 --scope $KV_ID
 
 az keyvault key create \
-  --name cosign \
+  --name containerconf \
   --kty EC \
   --size 256 \
   --vault-name $KV

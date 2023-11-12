@@ -3,7 +3,6 @@ apiVersion: kyverno.io/v1
 kind: Policy
 metadata:
   name: check-if-image-signed
-  namespace: default
 spec:
   validationFailureAction: Enforce
   webhookTimeoutSeconds: 30
