@@ -115,3 +115,46 @@ kubectl run --image=cr0containerconf0demo.azurecr.io/hello-app:latest-amd64 hell
 
 kubectl events
 ```
+
+Verify your own image with KMS (we will reuse our Wolfi image):
+
+```bash
+# Run all the steps from PREPARE.md for this demo
+
+# activate experimental features to enable OCI 1.1 support
+export COSIGN_EXPERIMENTAL=1
+
+nerdctl load -i ../wolfi/hello-app.tar
+
+nerdctl push cr0containerconf0demo.azurecr.io/hello-app:latest
+
+cosign generate-key-pair \
+  --kms azurekms://akv-containerconf-demo.vault.azure.net/signtest
+
+cosign sign \
+  --key azurekms://akv-containerconf-demo.vault.azure.net/signtest \
+  $(nerdctl image inspect cr0containerconf0demo.azurecr.io/hello-app:latest | jq -r '.[0].RepoDigests[0]') \
+  --registry-referrers-mode oci-1-1
+
+cosign verify \
+  --key azurekms://akv-containerconf-demo.vault.azure.net/signtest \
+  cr0containerconf0demo.azurecr.io/hello-app:latest | jq
+
+rekor-cli get --rekor_server https://rekor.sigstore.dev --log-index  --format json | jq
+
+oras discover cr0containerconf0demo.azurecr.io/hello-app:latest -o tree
+
+oras manifest fetch cr0containerconf0demo.azurecr.io/hello-app@ | jq
+
+cosign public-key \
+  --key azurekms://akv-containerconf-demo.vault.azure.net/signtest
+
+# Copy public key to src/enforce-signed-policy.yaml
+kubectl apply -f src/enforce-signed-policy.yaml
+
+kubectl logs -f -n kyverno --tail=0 -l "app.kubernetes.io/name=kyverno"
+
+kubectl run --image=cr0containerconf0demo.azurecr.io/hello-app:latest hello-app-$RANDOM
+
+kubectl events
+```
