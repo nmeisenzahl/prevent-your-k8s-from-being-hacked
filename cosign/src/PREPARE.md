@@ -51,5 +51,10 @@ az role assignment create \
 --role "AcrPush" \
 --scope $CR_ID
 
+# Docker
 az acr login --name $CR
+
+# nerdctl
+export TOKEN=$(az acr login -n $CR --expose-token -ojson |jq -r .accessToken)
+nerdctl login $CR.azurecr.io -p $TOKEN -u 00000000-0000-0000-0000-000000000000
 ```
