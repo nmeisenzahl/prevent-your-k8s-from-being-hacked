@@ -9,7 +9,7 @@ spec:
   background: false
   failurePolicy: Fail
   rules:
-    - name: ccheck-if-image-signed-github
+    - name: check-if-image-signed-github
       match:
         any:
         - resources:
@@ -17,7 +17,7 @@ spec:
               - Pod
       verifyImages:
       - imageReferences:
-        - "cgr.dev/chainguard/*"
+        - "*"
         attestors:
         - entries:
           - keyless:

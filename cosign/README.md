@@ -11,13 +11,15 @@ kubectl apply -f src/enforce-signed-github.yaml
 
 kubectl logs -f -n kyverno -c kyverno --tail=0 -l "app.kubernetes.io/component=admission-controller,app.kubernetes.io/instance=kyverno"
 
-kubectl run --image=cgr.dev/chainguard/nginx:latest nginx-$RANDOM
+kubectl run --image=cgr.dev/chainguard/nginx:latest nginx-chainguard-$RANDOM
+
+kubectl run --image=nginx nginx-$RANDOM
 
 kubectl events
 
 DIGEST=$(crane digest cgr.dev/chainguard/nginx:latest) && echo $DIGEST
 
-rekor-cli search --rekor_server https://rekor.sigstore.dev  --sha $DIGEST
+rekor-cli search --rekor_server https://rekor.sigstore.dev --sha $DIGEST
 
 rekor-cli get --rekor_server https://rekor.sigstore.dev --uuid
 

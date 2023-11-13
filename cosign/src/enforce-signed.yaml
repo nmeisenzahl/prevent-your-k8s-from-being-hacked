@@ -17,7 +17,7 @@ spec:
               - Pod
       verifyImages:
       - imageReferences:
-        - "ghcr.io/nmeisenzahl/*"
+        - "cr0containerconf0demo.azurecr.io/*"
         attestors:
         - count: 1
           entries:
