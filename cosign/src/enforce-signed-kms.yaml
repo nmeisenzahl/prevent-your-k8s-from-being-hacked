@@ -1,0 +1,20 @@
+---
+apiVersion: kyverno.io/v1
+kind: Policy
+metadata:
+  name: check-if-image-signed-kms
+spec:
+  validationFailureAction: Enforce
+  webhookTimeoutSeconds: 30
+  background: false
+  failurePolicy: Fail
+  rules:
+    - name: check-if-image-signed-kms
+      match:
+        any:
+        - resources:
+            kinds:
+              - Pod
+      verifyImages:
+      - image: "cr0containerconf0demo.azurecr.io/*"
+        key: "azurekms://akv-containerconf-demo.vault.azure.net/signing"

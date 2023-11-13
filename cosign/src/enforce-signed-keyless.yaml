@@ -1,16 +1,13 @@
----
 apiVersion: kyverno.io/v1
 kind: Policy
 metadata:
-  name: check-if-image-signed-keyless
-  namespace: default
+  name: check-image-signed-keyless
 spec:
   validationFailureAction: Enforce
   webhookTimeoutSeconds: 30
-  background: false
   failurePolicy: Fail
   rules:
-    - name: check-if-image-keyless
+    - name: check-image-signed-keyless
       match:
         any:
         - resources:
@@ -18,11 +15,11 @@ spec:
               - Pod
       verifyImages:
       - imageReferences:
-        - "cgr.dev/chainguard/*"
+        - "ghcr.io/kyverno/*"
         attestors:
         - entries:
           - keyless:
-              subject: "https://github.com/chainguard-images/images/.github/workflows/release.yaml@refs/heads/main"
-              issuer: "https://token.actions.githubusercontent.com"
+              subject: "*@nirmata.com"
+              issuer: "https://accounts.google.com"
               rekor:
                 url: https://rekor.sigstore.dev

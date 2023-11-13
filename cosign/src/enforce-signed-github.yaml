@@ -1,0 +1,27 @@
+---
+apiVersion: kyverno.io/v1
+kind: Policy
+metadata:
+  name: check-if-image-signed-github
+spec:
+  validationFailureAction: Enforce
+  webhookTimeoutSeconds: 30
+  background: false
+  failurePolicy: Fail
+  rules:
+    - name: check-if-image-signed-github
+      match:
+        any:
+        - resources:
+            kinds:
+              - Pod
+      verifyImages:
+      - imageReferences:
+        - "*"
+        attestors:
+        - entries:
+          - keyless:
+              subject: "https://github.com/chainguard-images/images/.github/workflows/release.yaml@refs/heads/main"
+              issuer: "https://token.actions.githubusercontent.com"
+              rekor:
+                url: https://rekor.sigstore.dev

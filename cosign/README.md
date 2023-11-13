@@ -1,37 +1,123 @@
 # Cosign Demo
 
-Validate a third-party image:
+## Keyless signing with GitHub Workflows
 
 ```bash
-kubectl apply -f src/enforce-signed-keyless-policy.yaml
+kubectl create ns github
 
-kubectl logs -f -n kyverno --tail=0 -l "app.kubernetes.io/name=kyverno"
+kubectl config set-context --current --namespace=github
 
-kubectl run --image=cgr.dev/chainguard/nginx:latest nginx-$RANDOM
+kubectl apply -f src/enforce-signed-github.yaml
+
+kubectl logs -f -n kyverno -c kyverno --tail=0 -l "app.kubernetes.io/component=admission-controller,app.kubernetes.io/instance=kyverno"
+
+kubectl run --image=cgr.dev/chainguard/nginx:latest nginx-chainguard-$RANDOM
+
+kubectl run --image=nginx nginx-$RANDOM
 
 kubectl events
 
-rekor-cli search --rekor_server https://rekor.sigstore.dev  --sha sha256:9619cdefed8f52a964f3e522a936b1f02f0bc8bc6eff2589bf330ec2c70ea346
+kkubectl get pods nginx-chainguard- -ojson | jq -r '.spec.containers[0].image'
 
-rekor-cli get --rekor_server https://rekor.sigstore.dev --uuid 24296fb24b8ad77a795683764476a3cdc94c639e888c5ff2b4fcaa8094cab3e546ba28ee83d6131c
+DIGEST=$(crane digest cgr.dev/chainguard/nginx:latest) && echo $DIGEST
+
+rekor-cli search --rekor_server https://rekor.sigstore.dev --sha $DIGEST
+
+rekor-cli get --rekor_server https://rekor.sigstore.dev --uuid
+
+crane ls cgr.dev/chainguard/nginx | head
 ```
 
-Verify your own image (we will reuse our Wolfi image):
+## Keyless signing
 
 ```bash
-nerdctl load -i ../wolfi/hello-app.tar
+kubectl create ns keyless
 
-nerdctl push ghcr.io/nmeisenzahl/prevent-your-k8s-from-being-hacked/hello-app:latest
+kubectl config set-context --current --namespace=keyless
+
+kubectl apply -f src/enforce-signed-keyless.yaml
+
+kubectl logs -f -n kyverno -c kyverno --tail=0 -l "app.kubernetes.io/component=admission-controller,app.kubernetes.io/instance=kyverno"
+
+kubectl run --image=ghcr.io/kyverno/test-verify-image:unsigned unsigned-$RANDOM
+
+kubectl run --image=ghcr.io/kyverno/test-verify-image:signed-keyless signed-$RANDOM
+
+kubectl events
+```
+
+## Verify your own image with local keys (we will reuse our Wolfi image)
+
+```bash
+kubectl create ns demo
+
+kubectl config set-context --current --namespace=demo
+
+docker load -i ../wolfi/hello-app.tar
+
+docker push cr0containerconf0demo.azurecr.io/hello-app:latest-amd64
 
 cosign generate-key-pair
 
-cosign sign --key cosign.key $(nerdctl image inspect ghcr.io/nmeisenzahl/prevent-your-k8s-from-being-hacked/hello-app:latest | jq -r '.[0].RepoDigests[0]')
+cosign sign --key cosign.key $(docker image inspect cr0containerconf0demo.azurecr.io/hello-app:latest-amd64 | jq -r '.[0].RepoDigests[0]')
 
+cosign verify --key cosign.key $(docker image inspect cr0containerconf0demo.azurecr.io/hello-app:latest-amd64
+
+kubectl apply -f src/enforce-signed.yaml
+
+kubectl logs -f -n kyverno -c kyverno --tail=0 -l "app.kubernetes.io/component=admission-controller,app.kubernetes.io/instance=kyverno"
+
+kubectl run --image=cr0containerconf0demo.azurecr.io/hello-app:latest-amd64 hello-app-$RANDOM
+
+kubectl events
+```
+
+## Verify your own image with KMS (we will reuse our Wolfi image):
+
+```bash
+# Run all the steps from PREPARE.md for this demo
+
+# activate experimental features to enable OCI 1.1 support
+export COSIGN_EXPERIMENTAL=1
+
+kubectl create ns demo
+
+kubectl config set-context --current --namespace=demo
+
+docker load -i ../wolfi/hello-app.tar
+
+docker push cr0containerconf0demo.azurecr.io/hello-app:latest-amd64
+
+cosign generate-key-pair \
+  --kms azurekms://akv-containerconf-demo.vault.azure.net/containerconf
+
+cosign sign \
+  --key azurekms://akv-containerconf-demo.vault.azure.net/containerconf \
+  $(docker image inspect cr0containerconf0demo.azurecr.io/hello-app:latest-amd64 | jq -r '.[0].RepoDigests[0]') \
+  --registry-referrers-mode oci-1-1
+
+cosign verify \
+  --key azurekms://akv-containerconf-demo.vault.azure.net/containerconf \
+  cr0containerconf0demo.azurecr.io/hello-app:latest-amd64 | jq
+
+rekor-cli get --rekor_server https://rekor.sigstore.dev --log-index  --format json | jq
+
+oras discover cr0containerconf0demo.azurecr.io/hello-app:latest-amd64 -o tree
+
+oras manifest fetch cr0containerconf0demo.azurecr.io/hello-app@ | jq
+
+cosign public-key \
+  --key azurekms://akv-containerconf-demo.vault.azure.net/containerconf \
+  && cosign public-key \
+  --key azurekms://akv-containerconf-demo.vault.azure.net/containerconf \
+  | pbcopy && echo 'Copied public key to clipboard 🔑'
+
+# Copy public key to src/enforce-signed-policy.yaml
 kubectl apply -f src/enforce-signed-policy.yaml
 
-kubectl logs -f -n kyverno --tail=0 -l "app.kubernetes.io/name=kyverno"
+kubectl logs -f -n kyverno -c kyverno --tail=0 -l "app.kubernetes.io/component=admission-controller,app.kubernetes.io/instance=kyverno"
 
-kubectl run --image=ghcr.io/nmeisenzahl/prevent-your-k8s-from-being-hacked/hello-app:latest hello-app-$RANDOM
+kubectl run --image=cr0containerconf0demo.azurecr.io/hello-app:latest-amd64 hello-app-$RANDOM
 
 kubectl events
 ```
