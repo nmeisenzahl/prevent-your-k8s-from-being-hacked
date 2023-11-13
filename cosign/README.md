@@ -17,6 +17,8 @@ kubectl run --image=nginx nginx-$RANDOM
 
 kubectl events
 
+kkubectl get pods nginx-chainguard- -ojson | jq -r '.spec.containers[0].image'
+
 DIGEST=$(crane digest cgr.dev/chainguard/nginx:latest) && echo $DIGEST
 
 rekor-cli search --rekor_server https://rekor.sigstore.dev --sha $DIGEST
@@ -53,7 +55,7 @@ kubectl config set-context --current --namespace=demo
 
 docker load -i ../wolfi/hello-app.tar
 
-docker push cr0containerconf0demo.azurecr.io/hello-app:latest
+docker push cr0containerconf0demo.azurecr.io/hello-app:latest-amd64
 
 cosign generate-key-pair
 
