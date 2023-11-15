@@ -5,19 +5,17 @@
 ```bash
 kubectl create ns github
 
-kubectl config set-context --current --namespace=github
+kubectl -n github apply -f src/enforce-signed-github.yaml
 
-kubectl apply -f src/enforce-signed-github.yaml
+kubectl -n kyverno logs -f -c kyverno --tail=0 -l "app.kubernetes.io/component=admission-controller,app.kubernetes.io/instance=kyverno"
 
-kubectl logs -f -n kyverno -c kyverno --tail=0 -l "app.kubernetes.io/component=admission-controller,app.kubernetes.io/instance=kyverno"
+kubectl -n github run --image=cgr.dev/chainguard/nginx:latest nginx-chainguard-$RANDOM
 
-kubectl run --image=cgr.dev/chainguard/nginx:latest nginx-chainguard-$RANDOM
+kubectl -n github run --image=nginx nginx-$RANDOM
 
-kubectl run --image=nginx nginx-$RANDOM
+kubectl -n github events
 
-kubectl events
-
-kkubectl get pods nginx-chainguard- -ojson | jq -r '.spec.containers[0].image'
+kkubectl -n github get pods nginx-chainguard- -ojson | jq -r '.spec.containers[0].image'
 
 DIGEST=$(crane digest cgr.dev/chainguard/nginx:latest) && echo $DIGEST
 
@@ -33,25 +31,21 @@ crane ls cgr.dev/chainguard/nginx | head
 ```bash
 kubectl create ns keyless
 
-kubectl config set-context --current --namespace=keyless
+kubectl -n keyless apply -f src/enforce-signed-keyless.yaml
 
-kubectl apply -f src/enforce-signed-keyless.yaml
+kubectl -n kyverno logs -f -c kyverno --tail=0 -l "app.kubernetes.io/component=admission-controller,app.kubernetes.io/instance=kyverno"
 
-kubectl logs -f -n kyverno -c kyverno --tail=0 -l "app.kubernetes.io/component=admission-controller,app.kubernetes.io/instance=kyverno"
+kubectl -n keyless run --image=ghcr.io/kyverno/test-verify-image:unsigned unsigned-$RANDOM
 
-kubectl run --image=ghcr.io/kyverno/test-verify-image:unsigned unsigned-$RANDOM
+kubectl -n keyless run --image=ghcr.io/kyverno/test-verify-image:signed-keyless signed-$RANDOM
 
-kubectl run --image=ghcr.io/kyverno/test-verify-image:signed-keyless signed-$RANDOM
-
-kubectl events
+kubectl -n keylessevents
 ```
 
 ## Verify your own image with local keys (we will reuse our Wolfi image)
 
 ```bash
 kubectl create ns demo
-
-kubectl config set-context --current --namespace=demo
 
 docker load -i ../wolfi/hello-app.tar
 
@@ -63,13 +57,13 @@ cosign sign --key cosign.key $(docker image inspect cr0containerconf0demo.azurec
 
 cosign verify --key cosign.key $(docker image inspect cr0containerconf0demo.azurecr.io/hello-app:latest-amd64
 
-kubectl apply -f src/enforce-signed.yaml
+kubectl -n demo apply -f src/enforce-signed.yaml
 
-kubectl logs -f -n kyverno -c kyverno --tail=0 -l "app.kubernetes.io/component=admission-controller,app.kubernetes.io/instance=kyverno"
+kubectl -n kyverno logs -f -c kyverno --tail=0 -l "app.kubernetes.io/component=admission-controller,app.kubernetes.io/instance=kyverno"
 
-kubectl run --image=cr0containerconf0demo.azurecr.io/hello-app:latest-amd64 hello-app-$RANDOM
+kubectl -n demo run --image=cr0containerconf0demo.azurecr.io/hello-app:latest-amd64 hello-app-$RANDOM
 
-kubectl events
+kubectl -n demo events
 ```
 
 ## Verify your own image with KMS (we will reuse our Wolfi image):
@@ -81,8 +75,6 @@ kubectl events
 export COSIGN_EXPERIMENTAL=1
 
 kubectl create ns demo
-
-kubectl config set-context --current --namespace=demo
 
 docker load -i ../wolfi/hello-app.tar
 
@@ -113,11 +105,11 @@ cosign public-key \
   | pbcopy && echo 'Copied public key to clipboard 🔑'
 
 # Copy public key to src/enforce-signed-policy.yaml
-kubectl apply -f src/enforce-signed-policy.yaml
+kubectl -n demo apply -f src/enforce-signed-policy.yaml
 
-kubectl logs -f -n kyverno -c kyverno --tail=0 -l "app.kubernetes.io/component=admission-controller,app.kubernetes.io/instance=kyverno"
+kubectl -n kyverno logs -f -c kyverno --tail=0 -l "app.kubernetes.io/component=admission-controller,app.kubernetes.io/instance=kyverno"
 
-kubectl run --image=cr0containerconf0demo.azurecr.io/hello-app:latest-amd64 hello-app-$RANDOM
+kubectl -n demo run --image=cr0containerconf0demo.azurecr.io/hello-app:latest-amd64 hello-app-$RANDOM
 
-kubectl events
+kubectl -n demo events
 ```

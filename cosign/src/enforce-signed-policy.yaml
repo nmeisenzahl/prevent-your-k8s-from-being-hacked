@@ -17,13 +17,14 @@ spec:
               - Pod
       verifyImages:
       - imageReferences:
-        - "cr0containerconf0demo.azurecr.io/*"
+        - "*"
         attestors:
         - count: 1
           entries:
           - keys:
               publicKeys: |-
                 -----BEGIN PUBLIC KEY-----
-                MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEo/jbQW2Tt6PKxn41g+G2c5Dj5hIp
-                bGz0+YjtIXB1WMw1YYb1xzUvUMZiAz7sDaqiw6F+ar+OirD9XsuOMA8A1A==
+                MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAETBjpUH3c9jovTXOI+OqaZR/6NRpU
+                fpM8XPosUdaC7gcUuPQ4p6hp3Plr2aH/M2p44t0aC4++QygpWS4L7btKDQ==
                 -----END PUBLIC KEY-----
+
